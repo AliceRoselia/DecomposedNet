@@ -137,7 +137,9 @@ q = torch.Tensor((best_qs+1)/2).to("cuda")
 
 model = DecomposedNet()
 
-model.load_state_dict(torch.load("DecomposedNet_v2_large_epoch5.pt",weights_only=True))
+model.load_state_dict(torch.load("DecomposedNet_v2_large_epoch6.pt",weights_only=True))
+#model.skip_out.requires_grad_(False)
+#model.skip_out.weight = nn.Parameter(torch.clamp(model.skip_out.weight,-1.0,1.0)) #So we can quantize it. 
 
 model = model.to("cuda")
 
@@ -172,3 +174,7 @@ with torch.no_grad():
     entropy = func.binary_cross_entropy(q, q)
 print(loss)
 print(entropy)
+
+import matplotlib.pyplot as plt
+plt.scatter(output.cpu().detach().numpy()[:1000],q.cpu().numpy()[:1000])
+plt.show()

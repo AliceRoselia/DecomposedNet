@@ -16,6 +16,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as func
 from adabelief_pytorch import AdaBelief
+#from ranger_adabelief import RangerAdaBelief
 
 torch.manual_seed(42)
 
@@ -150,7 +151,7 @@ def flip_square(square):
 if __name__ == "__main__":
     # Create model
     model = DecomposedNet()
-    model.load_state_dict(torch.load("DecomposedNet_v2_large_epoch4.pt",weights_only=True))
+    model.load_state_dict(torch.load("DecomposedNet_v2_large_epoch6.pt",weights_only=True))
     model = model.to("cuda")
     
     model = torch.jit.script(model)
@@ -158,8 +159,10 @@ if __name__ == "__main__":
     #2nd epoch: weight_decay = 1e-4, lr = 0.0003
     #3rd epoch: weight decay = 3e-3, lr = 0.0003
     #4th epoch: Using new data. Same as 3rd epoch.
-    #5th epoch: Still working in progress.
-    optimizer = AdaBelief(model.parameters(),lr=0.0003,weight_decouple=True,weight_decay=3e-3, rectify=False)
+    #5th epoch: Using new data again.
+    #6th epoch: New data again.
+    #7th epoch: Not working.
+    optimizer = AdaBelief(model.parameters(),lr=0.0003,weight_decouple=True,weight_decay=3e-3,rectify=False)
     # Create a sample sparse binary input (batch_size=2, input_dim=768)
     for i in range(0,3997696,batch_size):
         if i%1024 == 0:
@@ -191,9 +194,41 @@ if __name__ == "__main__":
             print("loss:", loss)
             #print("ideal loss", ideal_loss)
             
-    torch.save(model.state_dict(),"DecomposedNet_v2_large_epoch5.pt")
+    torch.save(model.state_dict(),"DecomposedNet_v2_large_fixed_epoch1.pt")
     
 #Epoch 1 result: 0.6265
 #Epoch 2 result: 0.6250
 
 #Epoch 4 result: 0.6195
+#Epoch 5 result: 0.6192
+#Epoch 6 result: 0.6189
+
+
+def print_subnet_min_max(subnet):
+    print(subnet.feature_Transformer.weight.min())
+    print(subnet.feature_Transformer.weight.max())
+    print(subnet.first_layer.weight.min())
+    print(subnet.first_layer.weight.max())
+    print(subnet.out_layer.weight.min())
+    print(subnet.out_layer.weight.max())
+    
+def print_weights_min_max(model):
+    print("linear weights")
+    print(model.linear1.weight.min())
+    print(model.linear1.weight.max())
+    print(model.linear2.weight.min())
+    print(model.linear2.weight.max())
+    print(model.skip_out.weight.min())
+    print(model.skip_out.weight.max())
+    
+    print("spnet")
+    spnet = model.singlePerspectiveNet
+    print(spnet.combined_net.weight.min())
+    print(spnet.combined_net.weight.max())
+    
+    print_subnet_min_max(spnet.pawn_subnet)
+    print_subnet_min_max(spnet.minor_piece_subnet)
+    print_subnet_min_max(spnet.major_piece_subnet)
+    print_subnet_min_max(spnet.diagonal_moving_piece_subnet)
+    
+print_weights_min_max(model)
