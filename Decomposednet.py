@@ -8,8 +8,8 @@ Created on Wed Jun 11 23:34:55 2025
 import numpy as np
 
 
-piece_data_formatted = np.load("Piece_data_formatted.npy")
-best_qs = np.load("best_qs.npy")
+piece_data_formatted = np.load("../../Piece_data_formatted.npy")
+best_qs = np.load("../../best_qs.npy")
 
 
 import torch

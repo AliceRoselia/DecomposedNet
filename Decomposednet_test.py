@@ -8,8 +8,8 @@ Created on Thu Jun 12 11:05:54 2025
 import numpy as np
 
 
-piece_data_formatted = np.load("Piece_data_formatted.npy")
-best_qs = np.load("best_qs.npy")
+piece_data_formatted = np.load("../../Piece_data_formatted.npy")
+best_qs = np.load("../../best_qs.npy")
 
 
 import torch
@@ -142,6 +142,7 @@ model.load_state_dict(torch.load("DecomposedNet_v2_large_epoch6.pt",weights_only
 #model.skip_out.weight = nn.Parameter(torch.clamp(model.skip_out.weight,-1.0,1.0)) #So we can quantize it. 
 
 model = model.to("cuda")
+model = torch.compile(model)
 
 
 
