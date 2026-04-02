@@ -90,7 +90,7 @@ model = ChaoticNet()
 model = model.to("cuda")
 model = torch.compile(model)
 
-model.load_state_dict(torch.load("ChaoticNet7_epoch2.pt",weights_only=True))
+model.load_state_dict(torch.load("ChaoticNet8_epoch2.pt",weights_only=True))
 #model.skip_out.requires_grad_(False)
 #model.skip_out.weight = nn.Parameter(torch.clamp(model.skip_out.weight,-1.0,1.0)) #So we can quantize it. 
 
