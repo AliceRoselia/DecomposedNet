@@ -9,8 +9,8 @@ Created on Sat Feb 28 21:37:47 2026
 import numpy as np
 
 
-piece_data_formatted = np.load("../../Piece_data_formatted_2.npy")
-best_qs = np.load("../../best_qs_2.npy")
+piece_data_formatted = np.load("../../Piece_data_formatted.npy")
+best_qs = np.load("../../best_qs.npy")
 
 import torch
 import torch.nn as nn
@@ -18,6 +18,8 @@ import torch.nn.functional as func
 from adabelief_pytorch import AdaBelief
 
 torch.manual_seed(42)
+
+torch.set_float32_matmul_precision("medium")
 
 
 batch_size = 4096
@@ -101,7 +103,7 @@ if __name__ == "__main__":
     model = ChaoticNet()
     model = model.to("cuda")
     model = torch.compile(model)
-    model.load_state_dict(torch.load("ChaoticNet6_epoch1.pt",weights_only=True))
+    #model.load_state_dict(torch.load("ChaoticNet6_epoch1.pt",weights_only=True))
     #The first epoch was trained with lr=0.001 and weight_decay = 0
     #2nd epoch: weight_decay = 1e-4, lr = 0.0003
     #3rd epoch: weight decay = 3e-3, lr = 0.0003
@@ -137,11 +139,15 @@ if __name__ == "__main__":
         #for x in model.parameters():
             #print(x.grad)
         optimizer.zero_grad()
+        with torch.no_grad():
+            
+            model.singlePerspectiveNet.combined_net.weight[:64][::2] = 0
+            model.singlePerspectiveNet.combined_net.weight[64:128][1::2] = 0
         if i%1024 == 0:
             print("loss:", loss)
             #print("ideal loss", ideal_loss)
             
-    torch.save(model.state_dict(),"ChaoticNet6_epoch2.pt")
+    torch.save(model.state_dict(),"ChaoticNet7_epoch1.pt")
     
 #Epoch 1 result: 0.6265
 #Epoch 2 result: 0.6250
