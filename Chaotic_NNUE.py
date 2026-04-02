@@ -9,8 +9,8 @@ Created on Sat Feb 28 21:37:47 2026
 import numpy as np
 
 
-piece_data_formatted = np.load("../../Piece_data_formatted.npy")
-best_qs = np.load("../../best_qs.npy")
+piece_data_formatted = np.load("../../Piece_data_formatted_2.npy")
+best_qs = np.load("../../best_qs_2.npy")
 
 import torch
 import torch.nn as nn
@@ -26,21 +26,15 @@ batch_size = 4096
 class singlePerspectiveNet(nn.Module):
     def __init__(self):
         super(singlePerspectiveNet, self).__init__()
-        self.combined_net = nn.Linear(768,1024)
-        self.conv1 = nn.Conv1d(4, 4, 1,padding = "same", padding_mode="circular")
-        self.conv2 = nn.Conv1d(4, 4, 1,padding = "same", padding_mode="circular")
-        self.conv3 = nn.Conv1d(4, 1, 1,padding = "same", padding_mode="circular")
+        self.combined_net = nn.Linear(768,2048)
+        self.conv3 = nn.Conv1d(8, 1, 1,padding = "same", padding_mode="circular")
         
         
         # pawn = 0, knight = 1, bishop = 2, rook = 3, queen = 4, king = 5
         
     
     def forward(self,x):
-        combined_feature = self.combined_net(x).view(-1,4,256)
-        combined_feature = torch.clamp(combined_feature,0,1)
-        combined_feature = self.conv1(combined_feature)
-        combined_feature = torch.clamp(combined_feature,0,1)
-        combined_feature = self.conv2(combined_feature)
+        combined_feature = self.combined_net(x).view(-1,8,256)
         combined_feature = torch.clamp(combined_feature,0,1)
         combined_feature = self.conv3(combined_feature).squeeze()
         
@@ -105,10 +99,9 @@ def flip_square(square):
 if __name__ == "__main__":
     # Create model
     model = ChaoticNet()
-    #model.load_state_dict(torch.load("DecomposedNet_v2_large_epoch6.pt",weights_only=True))
     model = model.to("cuda")
-    
     model = torch.compile(model)
+    model.load_state_dict(torch.load("ChaoticNet6_epoch1.pt",weights_only=True))
     #The first epoch was trained with lr=0.001 and weight_decay = 0
     #2nd epoch: weight_decay = 1e-4, lr = 0.0003
     #3rd epoch: weight decay = 3e-3, lr = 0.0003
@@ -148,7 +141,7 @@ if __name__ == "__main__":
             print("loss:", loss)
             #print("ideal loss", ideal_loss)
             
-    torch.save(model.state_dict(),"ChaoticNet5_epoch1.pt")
+    torch.save(model.state_dict(),"ChaoticNet6_epoch2.pt")
     
 #Epoch 1 result: 0.6265
 #Epoch 2 result: 0.6250
@@ -163,4 +156,6 @@ if __name__ == "__main__":
 #Without all the messy convs: 0.6254
 
 #With a few layers of self-convs. 0.6247
+#Only 1 conv layer, but with double the input: 0.6259
+#Epoch 2 with new data: 0.6227
 
